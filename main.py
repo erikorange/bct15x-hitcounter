@@ -40,11 +40,11 @@ def updateHitList(dict, entry):
         t = time.localtime()
         dict[idx]["timestamp_raw"] = t
         dict[idx]["timestamp"] = time.strftime('%m-%d-%Y %H:%M:%S', t)
-        dict = sorted(dict, key=operator.itemgetter('timestamp_raw'))
     else:                   # this is a new unique entry, so append
         entry['count'] = 1
         dict.append(entry)
     
+    dict = sorted(dict, key=operator.itemgetter('timestamp_raw'), reverse=True)
     return dict
 
 
@@ -54,7 +54,6 @@ gotHit = False
 
 ser = serial.Serial(port='COM4', baudrate=9600, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=0.1)
 
-print("start")
 while True:
     ser.write(b'GLG\r')
     rawHit = ser.readline().decode('utf-8')
