@@ -1,6 +1,10 @@
 import serial
 import operator
 import time
+import signal
+import sys
+from display import Display
+from util import Util
 
 
 def getSquelchFlag(rawData):
@@ -47,6 +51,21 @@ def updateHitList(dict, entry):
     dict = sorted(dict, key=operator.itemgetter('timestamp_raw'), reverse=True)
     return dict
 
+def shutdownEvent(signal, frame):
+    sys.exit(0)
+
+
+winFlag = Util.isWindows()
+if (not winFlag):
+    signal.signal(signal.SIGTERM, shutdownEvent)
+    signal.signal(signal.SIGINT, shutdownEvent)
+    signal.signal(signal.SIGTSTP, shutdownEvent)
+    Util.setCurrentDir('/home/pi/adsb-remote')
+
+dsp = Display(winFlag)
+dsp.setupDisplay()
+dsp.drawDataLEDs()
+dsp.refreshDisplay()
 
 hits=[]
 nullHit = "GLG,,,,,,,,,,,,"
@@ -57,6 +76,9 @@ ser = serial.Serial(port='COM4', baudrate=9600, parity=serial.PARITY_NONE, stopb
 while True:
     ser.write(b'GLG\r')
     rawHit = ser.readline().decode('utf-8')
+
+    dsp.flipDataLEDs()
+
     hit = ''.join(rawHit.splitlines())
 
     if (hit != nullHit):
@@ -67,11 +89,10 @@ while True:
             gotHit = True
             hitData = loadHitData(hit)
             hits = updateHitList(hits, hitData)
-            for i in hits:
-                print(f'{i["timestamp"]} {str(i["count"])} {i["freq"]} {i["channel"]}')
-            print("")
+            dsp.displayHitList(hits)
         
         if (gotHit and not sqFlag):
             gotHit = False
 
+    dsp.refreshDisplay()
 
