@@ -1,9 +1,9 @@
-import serial
 import operator
 import time
 import signal
 import sys
 from display import Display
+from serialport import SerialPort
 from util import Util
 
 
@@ -17,7 +17,6 @@ def getSquelchFlag(rawData):
 def loadHitData(rawData):
     p = {}
     d = rawData.split(',')
-    p['count'] = 0
     p['freq'] = d[1]
     p['bank'] = d[5]
     p['channel'] = d[7]
@@ -60,28 +59,28 @@ if (not winFlag):
     signal.signal(signal.SIGTERM, shutdownEvent)
     signal.signal(signal.SIGINT, shutdownEvent)
     signal.signal(signal.SIGTSTP, shutdownEvent)
-    Util.setCurrentDir('/home/pi/adsb-remote')
+    Util.setCurrentDir('/home/pi/')
+    serialPortName="/dev/ttyS0"
+else:
+    serialPortName="COM4"
 
 dsp = Display(winFlag)
 dsp.setupDisplay()
 dsp.drawDataLEDs()
 dsp.refreshDisplay()
 
+sp = SerialPort(serialPortName)
+
 hits=[]
-nullHit = "GLG,,,,,,,,,,,,"
 gotHit = False
 
-ser = serial.Serial(port='COM4', baudrate=9600, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=0.1)
-
 while True:
-    ser.write(b'GLG\r')
-    rawHit = ser.readline().decode('utf-8')
-
+    sp.pollScanner()
+    rawHit = sp.getScannerResponse()
     dsp.flipDataLEDs()
 
     hit = ''.join(rawHit.splitlines())
-
-    if (hit != nullHit):
+    if (hit != sp.isScanning):
         d = hit.split(',')
         sqFlag = getSquelchFlag(hit)
 

@@ -10,13 +10,14 @@ class Display():
     def __init__(self, winFlag):
         self.__winFlag = winFlag
 
-        self.__screenWidth = 800
+        self.__screenWidth = 700
         self.__screenHeight = 480
         
         self.__dataFlipLEDs = False
-        self.__dataLED1x = 10
-        self.__dataLED2x = 23
-        self.__dataLEDy = 10
+        self.__dataLEDx = self.__screenWidth
+        self.__dataLED1y = self.__screenHeight - 5
+        self.__dataLED2y = self.__screenHeight - 18
+        
 
         self.__initDisplay()
         self.__initFonts()
@@ -44,7 +45,7 @@ class Display():
             sansFont = "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
             monoFont = "/usr/share/fonts/truetype/freefont/FreeMono.ttf"
 
-        self.__recentFont       = self.__defineFont(self.__winFlag, sansFont, 20) # civ and mil recents
+        self.__recentFont       = self.__defineFont(self.__winFlag, sansFont, 32) # hit text
         self.btnFont            = self.__defineFont(self.__winFlag, sansFont, 30) # buttons
         self.btnRadarFont       = self.__defineFont(self.__winFlag, monoFont, 50) # radar +/- buttons
 
@@ -57,33 +58,32 @@ class Display():
     def __initColors(self):
         self.__black        = (0,0,0)
         self.__red          = (255,0,0)
-        self.__medRed       = (128,0,0)
         self.__yellow       = (255,255,0)
         self.__green        = (0,255,0)
-        self.__medGreen     = (0,128,0)
+        self.__cyan         = (0,255,255)
         self.__easyWhite    = (200,200,200)
         self.__white        = (255,255,255)
         
     def drawDataLEDs(self):
-        pygame.draw.circle(self.__lcd, self.__medRed, (self.__dataLED1x,self.__dataLEDy), 5, 0)
-        pygame.draw.circle(self.__lcd, self.__medRed, (self.__dataLED2x,self.__dataLEDy), 5, 0)
+        pygame.draw.circle(self.__lcd, self.__red, (self.__dataLEDx,self.__dataLED1y), 5, 0)
+        pygame.draw.circle(self.__lcd, self.__red, (self.__dataLEDx,self.__dataLED2y), 5, 0)
 
     def flipDataLEDs(self):
         if (self.__dataFlipLEDs):
-            LED1 = self.__medGreen
-            LED2 = self.__medRed
+            LED1 = self.__green
+            LED2 = self.__red
         else:
-            LED1 = self.__medRed
-            LED2 = self.__medGreen
+            LED1 = self.__red
+            LED2 = self.__green
 
-        pygame.draw.circle(self.__lcd, LED1, (self.__dataLED1x,self.__dataLEDy), 5, 0)
-        pygame.draw.circle(self.__lcd, LED2, (self.__dataLED2x,self.__dataLEDy), 5, 0)
+        pygame.draw.circle(self.__lcd, LED1, (self.__dataLEDx,self.__dataLED1y), 5, 0)
+        pygame.draw.circle(self.__lcd, LED2, (self.__dataLEDx,self.__dataLED2y), 5, 0)
         
         self.__dataFlipLEDs = not self.__dataFlipLEDs
         return
 
     def clearDisplayArea(self):
-        pygame.draw.rect(self.__lcd, self.__black, (0,0,self.__screenWidth,427))
+        pygame.draw.rect(self.__lcd, self.__black, (0,0,self.__screenWidth,self.__screenHeight-50))
 
     def setupDisplay(self):
         self.__lcd.fill(self.__black)
@@ -92,14 +92,37 @@ class Display():
 
     def displayHitList(self, hitList):
         xpos = 0
-        ypos = 20
+        ypos = 0
         self.clearDisplayArea()
 
-        for i in hitList:
-            theHit = f'{i["timestamp"].split(" ")[1]} {str(i["count"])} {i["freq"][0:7]} {i["channel"]}'
-            txt = self.__recentFont.render(theHit, 1, self.__white, self.__black)
-            self.__lcd.blit(txt, (xpos, ypos))
-            ypos += 32
+        listStart = 0
+        if len(hitList) < 10:
+            listEnd = len(hitList)
+        else:
+            listEnd = 10
+
+        for i in range(listStart, listEnd):
+            ts = hitList[i]["timestamp"].split(" ")[1]
+            count = str(hitList[i]["count"])
+            freq = hitList[i]["freq"][0:7]
+            channel = hitList[i]["channel"]
+
+            data = [{"text":ts,"anchor":"left","xpos":0,"color":self.__cyan},
+                    {"text":count,"anchor":"right","xpos":210,"color":self.__white},
+                    {"text":freq,"anchor":"left","xpos":240,"color":self.__green},
+                    {"text":channel,"anchor":"left","xpos":380,"color":self.__green}]
+
+            for l in data:
+                txt = self.__recentFont.render(l["text"], 1, l["color"])
+                txtRect = txt.get_rect()
+                if l["anchor"] == "left":
+                    txtRect.left = l["xpos"]
+                else:
+                    txtRect.right = l["xpos"]
+                txtRect.y = ypos
+                self.__lcd.blit(txt, txtRect)
+
+            ypos += 42
 
     def refreshDisplay(self):
         pygame.display.update()
