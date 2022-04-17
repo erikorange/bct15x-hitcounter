@@ -12,6 +12,7 @@ class Display():
 
         self.__screenWidth = 700
         self.__screenHeight = 480
+        self.__hitListHeight = 425
         
         self.__dataFlipLEDs = False
         self.__dataLEDx = self.__screenWidth
@@ -22,7 +23,7 @@ class Display():
         self.__initDisplay()
         self.__initFonts()
         self.__initColors()
-    
+
     def __initDisplay(self):
         pygame.init()
 
@@ -45,7 +46,7 @@ class Display():
             sansFont = "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
             monoFont = "/usr/share/fonts/truetype/freefont/FreeMono.ttf"
 
-        self.__recentFont       = self.__defineFont(self.__winFlag, sansFont, 32) # hit text
+        self.__hitFont          = self.__defineFont(self.__winFlag, sansFont, 33) # hit text
         self.btnFont            = self.__defineFont(self.__winFlag, sansFont, 30) # buttons
         self.btnRadarFont       = self.__defineFont(self.__winFlag, monoFont, 50) # radar +/- buttons
 
@@ -60,8 +61,8 @@ class Display():
         self.__red          = (255,0,0)
         self.__yellow       = (255,255,0)
         self.__green        = (0,255,0)
+        self.__blue         = (0,0,255)
         self.__cyan         = (0,255,255)
-        self.__easyWhite    = (200,200,200)
         self.__white        = (255,255,255)
         
     def drawDataLEDs(self):
@@ -83,10 +84,11 @@ class Display():
         return
 
     def clearDisplayArea(self):
-        pygame.draw.rect(self.__lcd, self.__black, (0,0,self.__screenWidth,self.__screenHeight-50))
+        pygame.draw.rect(self.__lcd, self.__black, (0,0,self.__screenWidth,self.__hitListHeight))
 
     def setupDisplay(self):
         self.__lcd.fill(self.__black)
+        pygame.draw.line(self.__lcd, self.__blue, (0,self.__hitListHeight+2), (self.__screenWidth,self.__hitListHeight+2), width=1)
         pygame.display.update()
         pygame.event.clear()
 
@@ -102,6 +104,7 @@ class Display():
             listEnd = 10
 
         for i in range(listStart, listEnd):
+
             ts = hitList[i]["timestamp"].split(" ")[1]
             count = str(hitList[i]["count"])
             freq = hitList[i]["freq"][0:7]
@@ -113,7 +116,7 @@ class Display():
                     {"text":channel,"anchor":"left","xpos":380,"color":self.__green}]
 
             for l in data:
-                txt = self.__recentFont.render(l["text"], 1, l["color"])
+                txt = self.__hitFont.render(l["text"], 1, l["color"])
                 txtRect = txt.get_rect()
                 if l["anchor"] == "left":
                     txtRect.left = l["xpos"]
