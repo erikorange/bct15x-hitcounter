@@ -14,6 +14,11 @@ Pi Setup with Adafruit 3.5 piTFT 3.5" Touch Screen
   [3] 270 degrees (landscape)
   PiTFT as HDMI Mirror
 
+pip install pygame --upgrade
+
+
+
+# buster
   sudo apt-get install -y libsdl2-2.0
   sudo apt-get install libsdl2-ttf-2.0-0
   sudo apt install -y python3-pip

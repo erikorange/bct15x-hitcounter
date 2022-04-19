@@ -29,7 +29,7 @@ class Button():
             self.__btnColorOn = pygame.Color(btnColor)
             self.__textColorOn = pygame.Color(textColor)
 
-        self.__btnColorDisabled = pygame.Color((5,5,5))
+        self.__btnColorDisabled = pygame.Color((55,55,55))
         self.__textColorOff = pygame.Color(textColor)
         self.__textColorOn = pygame.Color(textColor).correct_gamma(0.25)
         self.__btnColorHidden = pygame.Color((0,0,0))

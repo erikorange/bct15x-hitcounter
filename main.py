@@ -8,6 +8,25 @@ from serialport import SerialPort
 from util import Util
 from button import Button
 
+# if pagenum > 1 then enable pageup btn
+# 
+#
+# pagedownBtn:
+# numPages = int(len(hits)/10)+1
+# If pageNum + 1 <= numPages
+#     pageNum += 1
+
+# 1 page = 0-9
+# 2 page = 10 - 19
+# 3 page = 20 - 24
+
+# lowerBound = pageNum*10 - 10
+# if pageNum < numPages
+#   upperBound = pageNum*10 - 1
+# else
+#   upperBound = len(hits) - 1
+
+
 
 def getSquelchFlag(rawData):
     d = rawData.split(',')
@@ -56,10 +75,30 @@ def shutdownEvent(signal, frame):
     sys.exit(0)
 
 def holdBtnOn():
+    global isHolding
     isHolding = True
 
 def holdBtnOff():
+    global isHolding
     isHolding = False
+    
+def pageUpBtn():
+    print("page up")
+
+def pageDownBtn():
+    print("page down")
+
+def clrBtn():
+    global hits, pageNum, pageDownBtn, pageUpBtn, dsp
+    hits = []
+    dsp.clearDisplayArea()
+    pageNum = 1
+    pageDownBtn.drawButton(Button.State.DISABLED)
+    pageDownBtn.drawButton(Button.State.DISABLED)
+
+def exitSystem():
+    sys.exit(0)
+
 
 
 winFlag = Util.isWindows()
@@ -77,42 +116,32 @@ dsp.setupDisplay()
 dsp.drawDataLEDs()
 dsp.refreshDisplay()
 
-medRed = (80,0,0)
+medRed = (225,0,0)
 medPurple = (80,0,80)
-medBlue = (0,0,80)
+medBlue = (0,0,225)
 green = (0,110,0)
 gray = (128,128,128)
-darkGreen=(0,32,0)
+darkGreen=(0,128,0)
 dataColor=(40,40,0)
 white=(255,255,255)
 
+# button variables
 isHolding = False
 
-btnY = 440
+btnY = 434
 buttonList = []
 holdBtn = Button(dsp.lcd, 5, btnY, 100, 40, dsp.btnFont, medPurple, gray, "HOLD", holdBtnOn, holdBtnOff, Button.State.OFF, Button.Type.STICKY)
 buttonList.append(holdBtn)
+pageDownBtn = Button(dsp.lcd, 115, btnY, 100, 40, dsp.btnFont, darkGreen, white, "DOWN", pageDownBtn, None, Button.State.DISABLED, Button.Type.MOMENTARY)
+buttonList.append(pageDownBtn)
+pageUpBtn = Button(dsp.lcd, 225, btnY, 100, 40, dsp.btnFont, darkGreen, white, "UP", pageUpBtn, None, Button.State.DISABLED, Button.Type.MOMENTARY)
+buttonList.append(pageUpBtn)
+clrBtn = Button(dsp.lcd, 335, btnY, 120, 40, dsp.btnFont, medBlue, white, "CLEAR", clrBtn, None, Button.State.ON, Button.Type.MOMENTARY)
+buttonList.append(clrBtn)
+exitBtn = Button(dsp.lcd, 465, btnY, 100, 40, dsp.btnFont, medRed, gray, "EXIT", exitSystem, None, Button.State.ON, Button.Type.MOMENTARY)
+buttonList.append(exitBtn)
 
-
-#milBtn = Button(dsp.lcd, 115, 438, 100, 40, dsp.btnFont, darkGreen, gray, "MIL", milBtnOn, milBtnOff, Button.State.OFF, Button.Type.STICKY)
-#buttonList.append(milBtn)
-#infoBtn = Button(dsp.lcd, 225, 438, 100, 40, dsp.btnFont, medBlue, gray, "INFO", infoOn, infoOff, Button.State.OFF, Button.Type.STICKY)
-#buttonList.append(infoBtn)
-#bigBtn = Button(dsp.lcd, 335, 438, 100, 40, dsp.btnFont, dataColor, gray, "BIG", bigOn, bigOff, Button.State.OFF, Button.Type.STICKY)
-#buttonList.append(bigBtn)
-#exitBtn = Button(dsp.lcd, 695, 438, 100, 40, dsp.btnFont, medRed, gray, "EXIT", exitSystem, None, Button.State.OFF, Button.Type.MOMENTARY)
-#buttonList.append(exitBtn)
-##offBtn = Button(dsp.lcd, 695, 429, 100, 50, dsp.btnFont, medRed, gray, "OFF", powerOff, None, Button.State.OFF, Button.Type.MOMENTARY)
-##buttonList.append(offBtn)
-#plusBtn = Button(dsp.lcd, 545, 438, 40, 40, dsp.btnRadarFont, darkGreen, white, "+", zoomBtnOut, None, Button.State.HIDDEN, Button.Type.MOMENTARY)
-#buttonList.append(plusBtn)
-#minusBtn = Button(dsp.lcd, 605, 438, 40, 40, dsp.btnRadarFont, darkGreen, white, "-", zoomBtnIn, None, Button.State.HIDDEN, Button.Type.MOMENTARY)
-#buttonList.append(minusBtn)
-##historyBtn = Button(dsp.lcd, 5, 40, 100, 50, dsp.btnFont, green, white, "LIST", historyOn, None, Button.State.HIDDEN, Button.Type.MOMENTARY)
-##buttonList.append(historyBtn)
-
-
-
+pageNum = 1
 
 sp = SerialPort(serialPortName)
 
@@ -138,6 +167,9 @@ while True:
 
             if (gotHit and not sqFlag):
                 gotHit = False
+
+    if (len(hits) > 10 and pageDownBtn.isDisabled):
+        pageDownBtn.drawButton(Button.State.ON)
 
     for event in pygame.event.get():
         if (event.type == pygame.FINGERUP or event.type == pygame.MOUSEBUTTONUP):

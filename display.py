@@ -15,9 +15,9 @@ class Display():
         self.__hitListHeight = 425
         
         self.__dataFlipLEDs = False
-        self.__dataLEDx = self.__screenWidth
-        self.__dataLED1y = self.__screenHeight - 5
-        self.__dataLED2y = self.__screenHeight - 18
+        self.__dataLEDx = self.__screenWidth - 10
+        self.__dataLED1y = self.__screenHeight - 20
+        self.__dataLED2y = self.__screenHeight - 33
         
 
         self.__initDisplay()
