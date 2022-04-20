@@ -86,20 +86,25 @@ def pageUpBtn():
     print("page up")
 
 def pageDownBtn():
-    print("page down")
+    global hits
+    global curPage
+
+    numPages = int(len(hits)/10)+1
+    if curPage + 1 <= numPages:
+        curPage += 1
+    
+    dsp.displayHitList(hits, curPage)
 
 def clrBtn():
-    global hits, pageNum, pageDownBtn, pageUpBtn, dsp
+    global hits, curPage, pageDownBtn, pageUpBtn, dsp
     hits = []
     dsp.clearDisplayArea()
-    pageNum = 1
+    curPage = 1
     pageDownBtn.drawButton(Button.State.DISABLED)
-    pageDownBtn.drawButton(Button.State.DISABLED)
+    pageUpBtn.drawButton(Button.State.DISABLED)
 
 def exitSystem():
     sys.exit(0)
-
-
 
 winFlag = Util.isWindows()
 if (not winFlag):
@@ -138,10 +143,10 @@ pageUpBtn = Button(dsp.lcd, 225, btnY, 100, 40, dsp.btnFont, darkGreen, white, "
 buttonList.append(pageUpBtn)
 clrBtn = Button(dsp.lcd, 335, btnY, 120, 40, dsp.btnFont, medBlue, white, "CLEAR", clrBtn, None, Button.State.ON, Button.Type.MOMENTARY)
 buttonList.append(clrBtn)
-exitBtn = Button(dsp.lcd, 465, btnY, 100, 40, dsp.btnFont, medRed, gray, "EXIT", exitSystem, None, Button.State.ON, Button.Type.MOMENTARY)
+exitBtn = Button(dsp.lcd, 565, btnY, 100, 40, dsp.btnFont, medRed, gray, "EXIT", exitSystem, None, Button.State.ON, Button.Type.MOMENTARY)
 buttonList.append(exitBtn)
 
-pageNum = 1
+curPage = 1
 
 sp = SerialPort(serialPortName)
 
@@ -161,9 +166,10 @@ while True:
 
             if (not gotHit and sqFlag):
                 gotHit = True
-                hitData = loadHitData(hit)
-                hits = updateHitList(hits, hitData)
-                dsp.displayHitList(hits)
+                print("got a hit")
+                print(hit)
+                hits = updateHitList(hits, loadHitData(hit))
+                dsp.displayHitList(hits, curPage)
 
             if (gotHit and not sqFlag):
                 gotHit = False

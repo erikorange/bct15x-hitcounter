@@ -15,11 +15,11 @@ class Display():
         self.__hitListHeight = 425
         
         self.__dataFlipLEDs = False
-        self.__dataLEDx = self.__screenWidth - 10
-        self.__dataLED1y = self.__screenHeight - 20
-        self.__dataLED2y = self.__screenHeight - 33
-        
-
+        self.__dataLED1x = self.__screenWidth - 10
+        self.__dataLED2x = self.__screenWidth - 23
+        self.__dataLEDy = self.__screenHeight - 28
+        self.__dataLEDsize = 5
+  
         self.__initDisplay()
         self.__initFonts()
         self.__initColors()
@@ -66,8 +66,8 @@ class Display():
         self.__white        = (255,255,255)
         
     def drawDataLEDs(self):
-        pygame.draw.circle(self.__lcd, self.__red, (self.__dataLEDx,self.__dataLED1y), 5, 0)
-        pygame.draw.circle(self.__lcd, self.__red, (self.__dataLEDx,self.__dataLED2y), 5, 0)
+        pygame.draw.circle(self.__lcd, self.__red, (self.__dataLED1x,self.__dataLEDy), self.__dataLEDsize, 0)
+        pygame.draw.circle(self.__lcd, self.__red, (self.__dataLED2x,self.__dataLEDy), self.__dataLEDsize, 0)
 
     def flipDataLEDs(self):
         if (self.__dataFlipLEDs):
@@ -77,8 +77,8 @@ class Display():
             LED1 = self.__red
             LED2 = self.__green
 
-        pygame.draw.circle(self.__lcd, LED1, (self.__dataLEDx,self.__dataLED1y), 5, 0)
-        pygame.draw.circle(self.__lcd, LED2, (self.__dataLEDx,self.__dataLED2y), 5, 0)
+        pygame.draw.circle(self.__lcd, LED1, (self.__dataLED1x,self.__dataLEDy), self.__dataLEDsize, 0)
+        pygame.draw.circle(self.__lcd, LED2, (self.__dataLED2x,self.__dataLEDy), self.__dataLEDsize, 0)
         
         self.__dataFlipLEDs = not self.__dataFlipLEDs
         return
@@ -92,19 +92,25 @@ class Display():
         pygame.display.update()
         pygame.event.clear()
 
-    def displayHitList(self, hitList):
-        xpos = 0
+    def __calcRange(self, hits, curPage):
+        numPages = int(len(hits)/10) + 1
+
+        lowerBound = curPage*10 - 10
+        if curPage < numPages:
+          upperBound = curPage*10
+        else:
+          upperBound = len(hits)
+
+        return (lowerBound, upperBound)
+
+
+    def displayHitList(self, hitList, curPage):
         ypos = 0
         self.clearDisplayArea()
+        (lowerBound, upperBound) = self.__calcRange(hitList, curPage)
+        print(f"l:{lowerBound} u:{upperBound}")
 
-        listStart = 0
-        if len(hitList) < 10:
-            listEnd = len(hitList)
-        else:
-            listEnd = 10
-
-        for i in range(listStart, listEnd):
-
+        for i in range(lowerBound, upperBound):
             ts = hitList[i]["timestamp"].split(" ")[1]
             count = str(hitList[i]["count"])
             freq = hitList[i]["freq"][0:7]
