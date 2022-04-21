@@ -8,25 +8,37 @@ from serialport import SerialPort
 from util import Util
 from button import Button
 
-# if pagenum > 1 then enable pageup btn
-# 
-#
-# pagedownBtn:
-# numPages = int(len(hits)/10)+1
-# If pageNum + 1 <= numPages
-#     pageNum += 1
+def loadTestData():
+    t=[]
+    t.append('GLG,120.6200,AM,0,0,14 ZOB Ultra Hi,ZOB Ultra Hi,HOLL-V,1,0,NONE,NONE')
+    t.append('GLG,120.6250,AM,0,0,14 ZOB Ultra Hi,ZOB Ultra Hi,HOLL-V,1,0,NONE,NONE')
+    t.append('GLG,120.6300,AM,0,0,14 ZOB Ultra Hi,ZOB Ultra Hi,HOLL-V,0,1,NONE,NONE')
+    t.append('GLG,127.9000,AM,0,0,13 ZOB VHF,ZOB VHF,Carlton Low,1,0,NONE,NONE')
+    t.append('GLG,127.9050,AM,0,0,13 ZOB VHF,ZOB VHF,Carlton Low,0,1,NONE,NONE')
+    t.append('GLG,125.8800,AM,0,0,13 ZOB VHF,ZOB VHF,Brecksville Hi,1,0,NONE,NONE')
+    t.append('GLG,125.8750,AM,0,0,13 ZOB VHF,ZOB VHF,Brecksville Hi,0,1,NONE,NONE')
+    t.append('GLG,133.5250,AM,0,0,13 ZOB VHF,ZOB VHF,Wayne Super Hi,1,0,NONE,NONE')
+    t.append('GLG,133.5150,AM,0,0,13 ZOB VHF,ZOB VHF,Wayne Super Hi,1,0,NONE,NONE')
+    t.append('GLG,133.5050,AM,0,0,13 ZOB VHF,ZOB VHF,Wayne Super Hi,0,1,NONE,NONE')
+    t.append('GLG,127.8000,AM,0,0,13 ZOB VHF,ZOB VHF,Carlton Low,1,0,NONE,NONE')
+    t.append('GLG,127.7000,AM,0,0,13 ZOB VHF,ZOB VHF,Carlton Low,0,1,NONE,NONE')
+    t.append('GLG,119.2750,AM,0,0,13 ZOB VHF,ZOB VHF,Ravenna Hi,1,0,NONE,NONE')
+    t.append('GLG,119.3750,AM,0,0,13 ZOB VHF,ZOB VHF,Ravenna Hi,0,1,NONE,NONE')
+    t.append('GLG,125.1150,AM,0,0,13 ZOB VHF,ZOB VHF,Brecksville Hi,0,1,NONE,NONE')
+    t.append('GLG,133.1250,AM,0,0,13 ZOB VHF,ZOB VHF,Wayne Super Hi,1,0,NONE,NONE')
+    t.append('GLG,133.1350,AM,0,0,13 ZOB VHF,ZOB VHF,Wayne Super Hi,1,0,NONE,NONE')
+    t.append('GLG,133.1450,AM,0,0,13 ZOB VHF,ZOB VHF,Wayne Super Hi,0,1,NONE,NONE')
+    t.append('GLG,127.1500,AM,0,0,13 ZOB VHF,ZOB VHF,Carlton Low,1,0,NONE,NONE')
+    t.append('GLG,127.1600,AM,0,0,13 ZOB VHF,ZOB VHF,Carlton Low,0,1,NONE,NONE')
+    t.append('GLG,119.1750,AM,0,0,13 ZOB VHF,ZOB VHF,Ravenna Hi,1,0,NONE,NONE')
+    t.append('GLG,119.1850,AM,0,0,13 ZOB VHF,ZOB VHF,Ravenna Hi,0,1,NONE,NONE')
 
-# 1 page = 0-9
-# 2 page = 10 - 19
-# 3 page = 20 - 24
-
-# lowerBound = pageNum*10 - 10
-# if pageNum < numPages
-#   upperBound = pageNum*10 - 1
-# else
-#   upperBound = len(hits) - 1
-
-
+    hl=[]
+    for i in t:
+        h = loadHitData(i)
+        hl = updateHitList(hl, h)
+    
+    return hl
 
 def getSquelchFlag(rawData):
     d = rawData.split(',')
@@ -83,17 +95,23 @@ def holdBtnOff():
     isHolding = False
     
 def pageUpBtn():
-    print("page up")
-
-def pageDownBtn():
+    global dsp
     global hits
     global curPage
 
-    numPages = int(len(hits)/10)+1
+    if curPage - 1 > 0:
+        curPage -= 1
+        dsp.displayHitList(hits, curPage)
+
+def pageDownBtn():
+    global dsp
+    global hits
+    global curPage
+
+    numPages = dsp.getNumPages(hits)
     if curPage + 1 <= numPages:
         curPage += 1
-    
-    dsp.displayHitList(hits, curPage)
+        dsp.displayHitList(hits, curPage)
 
 def clrBtn():
     global hits, curPage, pageDownBtn, pageUpBtn, dsp
@@ -105,6 +123,7 @@ def clrBtn():
 
 def exitSystem():
     sys.exit(0)
+
 
 winFlag = Util.isWindows()
 if (not winFlag):
@@ -151,6 +170,9 @@ curPage = 1
 sp = SerialPort(serialPortName)
 
 hits=[]
+hits=loadTestData()
+dsp.displayHitList(hits, curPage)
+
 gotHit = False
 
 while True:
@@ -166,7 +188,6 @@ while True:
 
             if (not gotHit and sqFlag):
                 gotHit = True
-                print("got a hit")
                 print(hit)
                 hits = updateHitList(hits, loadHitData(hit))
                 dsp.displayHitList(hits, curPage)
@@ -174,8 +195,18 @@ while True:
             if (gotHit and not sqFlag):
                 gotHit = False
 
-    if (len(hits) > 10 and pageDownBtn.isDisabled):
+    if (pageDownBtn.isDisabled and dsp.getNumPages(hits) > 1):      # enable pgdown if > 1 page
         pageDownBtn.drawButton(Button.State.ON)
+
+    if (pageDownBtn.isOn and curPage == dsp.getNumPages(hits)):     # disable pgdown if at end of pages
+        pageDownBtn.drawButton(Button.State.DISABLED)
+
+    if (pageUpBtn.isDisabled and curPage > 1):                      # enable pgup if > 1 page
+        pageUpBtn.drawButton(Button.State.ON)
+
+    if (pageDownBtn.isOn and curPage == 1):                         # disable pgup if at 1st page
+        pageUpBtn.drawButton(Button.State.DISABLED)
+
 
     for event in pygame.event.get():
         if (event.type == pygame.FINGERUP or event.type == pygame.MOUSEBUTTONUP):

@@ -87,6 +87,12 @@ class Button():
         else:
             return False
 
+    def isOn(self):
+       if (self.__state == self.State.ON):
+           return True
+       else:
+           return False
+        
     def isSelected(self):
         return self.__buttonRect.collidepoint(pygame.mouse.get_pos())
 

@@ -13,6 +13,7 @@ class Display():
         self.__screenWidth = 700
         self.__screenHeight = 480
         self.__hitListHeight = 425
+        self.__pageSize = 10            # max number of hits displayed per page
         
         self.__dataFlipLEDs = False
         self.__dataLED1x = self.__screenWidth - 10
@@ -59,7 +60,6 @@ class Display():
     def __initColors(self):
         self.__black        = (0,0,0)
         self.__red          = (255,0,0)
-        self.__yellow       = (255,255,0)
         self.__green        = (0,255,0)
         self.__blue         = (0,0,255)
         self.__cyan         = (0,255,255)
@@ -91,13 +91,24 @@ class Display():
         pygame.draw.line(self.__lcd, self.__blue, (0,self.__hitListHeight+2), (self.__screenWidth,self.__hitListHeight+2), width=1)
         pygame.display.update()
         pygame.event.clear()
+    
+    def getNumPages(self, hits):
+        numHits = len(hits)
+        if numHits == 0:
+            return 1
+        
+        numPages = int(numHits/self.__pageSize)
+        if numHits%self.__pageSize == 0:
+            return numPages
+        else:
+            return numPages + 1
 
     def __calcRange(self, hits, curPage):
-        numPages = int(len(hits)/10) + 1
+        numPages = self.getNumPages(hits)
 
-        lowerBound = curPage*10 - 10
+        lowerBound = curPage*self.__pageSize - self.__pageSize
         if curPage < numPages:
-          upperBound = curPage*10
+          upperBound = curPage*self.__pageSize
         else:
           upperBound = len(hits)
 
