@@ -10,7 +10,7 @@ class Display():
     def __init__(self, winFlag):
         self.__winFlag = winFlag
 
-        self.__screenWidth = 700
+        self.__screenWidth = 800
         self.__screenHeight = 480
         self.__hitListHeight = 425
         self.__pageSize = 10            # max number of hits displayed per page
@@ -124,13 +124,13 @@ class Display():
         for i in range(lowerBound, upperBound):
             ts = hitList[i]["timestamp"].split(" ")[1]
             count = str(hitList[i]["count"])
-            freq = hitList[i]["freq"][0:7]
+            freq = hitList[i]["freq"]
             channel = hitList[i]["channel"]
 
             data = [{"text":ts,"anchor":"left","xpos":0,"color":self.__cyan},
                     {"text":count,"anchor":"right","xpos":210,"color":self.__white},
                     {"text":freq,"anchor":"left","xpos":240,"color":self.__green},
-                    {"text":channel,"anchor":"left","xpos":380,"color":self.__green}]
+                    {"text":channel,"anchor":"left","xpos":400,"color":self.__green}]
 
             for l in data:
                 txt = self.__hitFont.render(l["text"], 1, l["color"])
