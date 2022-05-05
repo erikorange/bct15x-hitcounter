@@ -42,7 +42,9 @@ def loadTestData():
 
 def getSquelchFlag(rawData):
     d = rawData.split(',')
-    if (d[8] == "0"):
+    if (len(d) != 13):  # ensure there's 13 elements.  powering off/on can return GLG with not enough elements
+        return False
+    elif (d[8] == "0"):
         return False
     else:
         return True
