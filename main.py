@@ -156,15 +156,25 @@ isHolding = False
 
 btnY = 434
 buttonList = []
-holdBtn = Button(dsp.lcd, 5, btnY, 100, 40, dsp.btnFont, medPurple, gray, "HOLD", holdBtnOn, holdBtnOff, Button.State.OFF, Button.Type.STICKY)
+holdBtn = Button(dsp.lcd, (5,btnY), (50,40), Button.Style.PAUSE, None, medPurple, gray, None, holdBtnOn, holdBtnOff, Button.State.OFF, Button.Type.STICKY)
 buttonList.append(holdBtn)
-pageDownBtn = Button(dsp.lcd, 115, btnY, 100, 40, dsp.btnFont, darkGreen, white, "DOWN", pageDownBtn, None, Button.State.DISABLED, Button.Type.MOMENTARY)
+
+pageDownBtn = Button(dsp.lcd, (65,btnY), (50,40), Button.Style.DOWN_ARROW, None, darkGreen, gray, None, pageDownBtn, None, Button.State.DISABLED, Button.Type.MOMENTARY)
 buttonList.append(pageDownBtn)
-pageUpBtn = Button(dsp.lcd, 225, btnY, 100, 40, dsp.btnFont, darkGreen, white, "UP", pageUpBtn, None, Button.State.DISABLED, Button.Type.MOMENTARY)
+
+pageUpBtn = Button(dsp.lcd, (125,btnY), (50,40), Button.Style.UP_ARROW, None, darkGreen, gray, None, pageUpBtn, None, Button.State.DISABLED, Button.Type.MOMENTARY)
 buttonList.append(pageUpBtn)
-clrBtn = Button(dsp.lcd, 335, btnY, 120, 40, dsp.btnFont, medBlue, white, "CLEAR", clrBtn, None, Button.State.ON, Button.Type.MOMENTARY)
+
+sortCountBtn = Button(dsp.lcd, (185,btnY), (50,40), Button.Style.TEXT, dsp.btnFont, darkGreen, gray, "#", clrBtn, None, Button.State.ON, Button.Type.MOMENTARY)
+buttonList.append(sortCountBtn)
+
+sortTimeBtn = Button(dsp.lcd, (245,btnY), (50,40), Button.Style.CLOCK, None, darkGreen, gray, None, pageUpBtn, None, Button.State.DISABLED, Button.Type.STICKY)
+buttonList.append(sortTimeBtn)
+
+clrBtn = Button(dsp.lcd, (335,btnY), (120,40), Button.Style.TEXT, dsp.btnFont, medBlue, white, "CLEAR", clrBtn, None, Button.State.ON, Button.Type.MOMENTARY)
 buttonList.append(clrBtn)
-exitBtn = Button(dsp.lcd, 565, btnY, 100, 40, dsp.btnFont, medRed, gray, "EXIT", exitSystem, None, Button.State.ON, Button.Type.MOMENTARY)
+
+exitBtn = Button(dsp.lcd, (565,btnY), (100,40), Button.Style.TEXT, dsp.btnFont, medRed, gray, "EXIT", exitSystem, None, Button.State.ON, Button.Type.MOMENTARY)
 buttonList.append(exitBtn)
 
 curPage = 1

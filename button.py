@@ -13,12 +13,20 @@ class Button():
         MOMENTARY = 1
         STICKY = 2
 
-    def __init__(self, screen, posX, posY, sizeX, sizeY, font, btnColor, textColor, text, onCallback, offCallback, initialState, buttonType):
+    class Style(enum.Enum):
+        TEXT = 0
+        PAUSE = 1
+        UP_ARROW = 2
+        DOWN_ARROW = 3
+        CLOCK = 4
+
+    def __init__(self, screen, pos, size, style, font, btnColor, textColor, text, onCallback, offCallback, initialState, buttonType):
         self.__screen = screen
-        self.__posX = posX
-        self.__posY = posY
-        self.__sizeX = sizeX
-        self.__sizeY = sizeY
+        self.__posX = pos[0]
+        self.__posY = pos[1]
+        self.__sizeX = size[0]
+        self.__sizeY = size[1]
+        self.__style = style
         self.__font = font
         self.__btnColorOff = pygame.Color(btnColor)
         self.__textColorOff = pygame.Color(textColor)
@@ -58,11 +66,50 @@ class Button():
 
     def __renderButton(self, bgColor, txtColor):
         self.__buttonRect = pygame.draw.rect(self.__screen, bgColor, (self.__posX, self.__posY, self.__sizeX, self.__sizeY), border_radius=10)
-        txt = self.__font.render(self.__text, 1, txtColor)
-        txtCenterX = self.__posX + (self.__sizeX/2)
-        txtCenterY = self.__posY + (self.__sizeY/2)
-        txtRect = txt.get_rect(center=(txtCenterX, txtCenterY))
-        self.__screen.blit(txt, txtRect)
+        centerX = self.__buttonRect.centerx
+        centerY = self.__buttonRect.centery
+
+        if (self.__style == self.Style.TEXT):
+            txt = self.__font.render(self.__text, 1, txtColor)
+            txtRect = txt.get_rect(center=(centerX, centerY))
+            self.__screen.blit(txt, txtRect)
+
+        elif (self.__style == self.Style.PAUSE):
+            pWidth = 6
+            pHeight = 20
+            ctrOffset = 6
+
+            lp = pygame.Rect(0,0,pWidth,pHeight)
+            lp.center = (centerX - ctrOffset, centerY)
+            pygame.draw.rect(self.__screen, txtColor, lp)
+
+            rp = pygame.Rect(0,0,pWidth,pHeight)
+            rp.center = (centerX + ctrOffset, centerY)
+            pygame.draw.rect(self.__screen, txtColor, rp)
+
+        elif (self.__style == self.Style.DOWN_ARROW):
+            ctrOffset = 9
+            pygame.draw.polygon(self.__screen, txtColor, [(centerX, centerY+ctrOffset), (centerX-ctrOffset, centerY-ctrOffset), (centerX+ctrOffset, centerY-ctrOffset),(centerX, centerY+ctrOffset)])
+
+        elif (self.__style == self.Style.UP_ARROW):
+            ctrOffset = 9
+            pygame.draw.polygon(self.__screen, txtColor, [(centerX, centerY-ctrOffset), (centerX-ctrOffset, centerY+ctrOffset), (centerX+ctrOffset, centerY+ctrOffset),(centerX, centerY-ctrOffset)])     
+
+        elif (self.__style == self.Style.CLOCK):
+            ctrOffset = 14
+    
+            pygame.draw.circle(self.__screen, txtColor, (centerX, centerY), ctrOffset, width=2)
+            
+            mh = pygame.Rect(0, 0, 2, 8)
+            mh.midbottom = (centerX, centerY)
+            pygame.draw.rect(self.__screen, txtColor, mh)
+
+            hh = pygame.Rect(0, 0, 7, 2)
+            hh.midleft = (centerX, centerY)
+            pygame.draw.rect(self.__screen, txtColor, hh)
+
+        else:
+            return
 
     def toggleButton(self):
         if (self.__state == self.State.OFF):
