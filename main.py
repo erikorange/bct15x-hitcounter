@@ -1,8 +1,10 @@
 import operator
+from pstats import SortKey
 import time
 import signal
 import sys
 import pygame
+import enum
 from display import Display
 from serialport import SerialPort
 from util import Util
@@ -36,9 +38,13 @@ def loadTestData():
     hl=[]
     for i in t:
         h = loadHitData(i)
-        hl = updateHitList(hl, h)
+        hl = updateHitList(hl, h, Sort.TIMESTAMP)
     
     return hl
+
+class Sort(enum.Enum):
+        TIMESTAMP = 1
+        COUNT = 2
 
 def getSquelchFlag(rawData):
     d = rawData.split(',')
@@ -60,14 +66,13 @@ def loadHitData(rawData):
     p['timestamp'] = time.strftime('%m-%d-%Y %H:%M:%S', t)
     return(p)
 
-def updateHitList(dict, entry):
+def updateHitList(dict, entry, sort):
     idx = 0
     found = False
 
     while (idx < len(dict) and not found):
         item = dict[idx]
         if (item["freq"] == entry["freq"] and \
-            item["bank"] == entry["bank"] and \
             item["channel"] == entry["channel"]):
             found = True
         else:
@@ -82,7 +87,16 @@ def updateHitList(dict, entry):
         entry['count'] = 1
         dict.append(entry)
     
-    dict = sorted(dict, key=operator.itemgetter('timestamp_raw'), reverse=True)
+    dict = sortHitList(dict, sort)
+    return dict
+
+def sortHitList(dict, sort):
+    if (sort == Sort.TIMESTAMP):
+        sortKey = 'timestamp_raw'
+    else:
+        sortKey = 'count'
+
+    dict = sorted(dict, key=operator.itemgetter(sortKey), reverse=True)
     return dict
 
 def shutdownEvent(signal, frame):
@@ -96,7 +110,7 @@ def holdBtnOff():
     global isHolding
     isHolding = False
     
-def pageUpBtn():
+def pageUp():
     global dsp
     global hits
     global curPage
@@ -104,8 +118,9 @@ def pageUpBtn():
     if curPage - 1 > 0:
         curPage -= 1
         dsp.displayHitList(hits, curPage)
+        dsp.displayStats(hits, curPage)
 
-def pageDownBtn():
+def pageDown():
     global dsp
     global hits
     global curPage
@@ -114,12 +129,34 @@ def pageDownBtn():
     if curPage + 1 <= numPages:
         curPage += 1
         dsp.displayHitList(hits, curPage)
+        dsp.displayStats(hits, curPage)
 
-def clrBtn():
+def sortByTimestampOn():
+    global sortKey
+    global hits
+    global curPage
+
+    sortTimeBtn.drawButton(Button.State.ON)
+    sortKey = Sort.TIMESTAMP
+    hits = sortHitList(hits, sortKey)
+    dsp.displayHitList(hits, curPage)
+
+def sortByTimestampOff():
+    global sortKey
+    global hits
+    global curPage
+
+    sortTimeBtn.drawButton(Button.State.OFF)
+    sortKey = Sort.COUNT
+    hits = sortHitList(hits, sortKey)
+    dsp.displayHitList(hits, curPage)
+
+def clrHits():
     global hits, curPage, pageDownBtn, pageUpBtn, dsp
     hits = []
-    dsp.clearDisplayArea()
     curPage = 1
+    dsp.clearDisplayArea()
+    dsp.displayStats(hits, curPage)
     pageDownBtn.drawButton(Button.State.DISABLED)
     pageUpBtn.drawButton(Button.State.DISABLED)
 
@@ -142,39 +179,37 @@ dsp.setupDisplay()
 dsp.drawDataLEDs()
 dsp.refreshDisplay()
 
-medRed = (225,0,0)
+medRed = (200,0,0)
 medPurple = (80,0,80)
 medBlue = (0,0,225)
 green = (0,110,0)
 gray = (128,128,128)
-darkGreen=(0,128,0)
+darkGreen=(0,80,0)
 dataColor=(40,40,0)
 white=(255,255,255)
 
 # button variables
 isHolding = False
+sortKey = Sort.COUNT
 
 btnY = 434
 buttonList = []
 holdBtn = Button(dsp.lcd, (5,btnY), (50,40), Button.Style.PAUSE, None, medPurple, gray, None, holdBtnOn, holdBtnOff, Button.State.OFF, Button.Type.STICKY)
 buttonList.append(holdBtn)
 
-pageDownBtn = Button(dsp.lcd, (65,btnY), (50,40), Button.Style.DOWN_ARROW, None, darkGreen, gray, None, pageDownBtn, None, Button.State.DISABLED, Button.Type.MOMENTARY)
+pageDownBtn = Button(dsp.lcd, (65,btnY), (50,40), Button.Style.DOWN_ARROW, None, darkGreen, gray, None, pageDown, None, Button.State.DISABLED, Button.Type.MOMENTARY)
 buttonList.append(pageDownBtn)
 
-pageUpBtn = Button(dsp.lcd, (125,btnY), (50,40), Button.Style.UP_ARROW, None, darkGreen, gray, None, pageUpBtn, None, Button.State.DISABLED, Button.Type.MOMENTARY)
+pageUpBtn = Button(dsp.lcd, (125,btnY), (50,40), Button.Style.UP_ARROW, None, darkGreen, gray, None, pageUp, None, Button.State.DISABLED, Button.Type.MOMENTARY)
 buttonList.append(pageUpBtn)
 
-sortCountBtn = Button(dsp.lcd, (185,btnY), (50,40), Button.Style.TEXT, dsp.btnFont, darkGreen, gray, "#", clrBtn, None, Button.State.ON, Button.Type.MOMENTARY)
-buttonList.append(sortCountBtn)
-
-sortTimeBtn = Button(dsp.lcd, (245,btnY), (50,40), Button.Style.CLOCK, None, darkGreen, gray, None, pageUpBtn, None, Button.State.DISABLED, Button.Type.STICKY)
+sortTimeBtn = Button(dsp.lcd, (185,btnY), (50,40), Button.Style.CLOCK, None, darkGreen, gray, None, sortByTimestampOn, sortByTimestampOff, Button.State.OFF, Button.Type.STICKY)
 buttonList.append(sortTimeBtn)
 
-clrBtn = Button(dsp.lcd, (335,btnY), (120,40), Button.Style.TEXT, dsp.btnFont, medBlue, white, "CLEAR", clrBtn, None, Button.State.ON, Button.Type.MOMENTARY)
+clrBtn = Button(dsp.lcd, (245,btnY), (80,40), Button.Style.TEXT, dsp.btnFont, medBlue, white, "CLR", clrHits, None, Button.State.ON, Button.Type.MOMENTARY)
 buttonList.append(clrBtn)
 
-exitBtn = Button(dsp.lcd, (565,btnY), (100,40), Button.Style.TEXT, dsp.btnFont, medRed, gray, "EXIT", exitSystem, None, Button.State.ON, Button.Type.MOMENTARY)
+exitBtn = Button(dsp.lcd, (665,btnY), (100,40), Button.Style.TEXT, dsp.btnFont, medRed, gray, "EXIT", exitSystem, None, Button.State.ON, Button.Type.MOMENTARY)
 buttonList.append(exitBtn)
 
 curPage = 1
@@ -182,8 +217,9 @@ curPage = 1
 sp = SerialPort(serialPortName)
 
 hits=[]
-hits=loadTestData()
+#hits=loadTestData()
 dsp.displayHitList(hits, curPage)
+dsp.displayStats(hits, curPage)
 
 gotHit = False
 
@@ -201,8 +237,9 @@ while True:
             if (not gotHit and sqFlag):
                 gotHit = True
                 print(hit)
-                hits = updateHitList(hits, loadHitData(hit))
+                hits = updateHitList(hits, loadHitData(hit), sortKey)
                 dsp.displayHitList(hits, curPage)
+                dsp.displayStats(hits, curPage)
 
             if (gotHit and not sqFlag):
                 gotHit = False

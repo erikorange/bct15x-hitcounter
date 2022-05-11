@@ -16,8 +16,8 @@ class Display():
         self.__pageSize = 10            # max number of hits displayed per page
         
         self.__dataFlipLEDs = False
-        self.__dataLED1x = self.__screenWidth - 10
-        self.__dataLED2x = self.__screenWidth - 23
+        self.__dataLED1x = self.__screenWidth - 310
+        self.__dataLED2x = self.__screenWidth - 323
         self.__dataLEDy = self.__screenHeight - 28
         self.__dataLEDsize = 5
   
@@ -47,9 +47,9 @@ class Display():
             sansFont = "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
             monoFont = "/usr/share/fonts/truetype/freefont/FreeMono.ttf"
 
-        self.__hitFont          = self.__defineFont(self.__winFlag, sansFont, 33) # hit text
-        self.btnFont            = self.__defineFont(self.__winFlag, sansFont, 30) # buttons
-        self.btnRadarFont       = self.__defineFont(self.__winFlag, monoFont, 50) # radar +/- buttons
+        self.__hitFont          = self.__defineFont(self.__winFlag, sansFont, 33)
+        self.btnFont            = self.__defineFont(self.__winFlag, sansFont, 30)
+        self.__statsFont        = self.__defineFont(self.__winFlag, sansFont, 22)
 
     def __defineFont(self, winflag, fontFamily, size):
         if (self.__winFlag):
@@ -119,7 +119,6 @@ class Display():
         ypos = 0
         self.clearDisplayArea()
         (lowerBound, upperBound) = self.__calcRange(hitList, curPage)
-        print(f"l:{lowerBound} u:{upperBound}")
 
         for i in range(lowerBound, upperBound):
             ts = hitList[i]["timestamp"].split(" ")[1]
@@ -143,6 +142,24 @@ class Display():
                 self.__lcd.blit(txt, txtRect)
 
             ypos += 42
+
+    def displayStats(self, hits, curPage):
+        x = 565
+        y = 441
+
+        pygame.draw.rect(self.__lcd, self.__black, (x-45,y-10,90,44))
+
+        txt = self.__statsFont.render(f"{len(hits)}", 1, self.__cyan)
+        txtRect = txt.get_rect()
+        txtRect.center = (x,y)
+        self.lcd.blit(txt, txtRect)
+
+        y = 464
+        txt = self.__statsFont.render(f"{curPage}/{self.getNumPages(hits)}", 1, self.__cyan)
+        txtRect = txt.get_rect()
+        txtRect.center = (x,y)
+        self.lcd.blit(txt, txtRect)
+
 
     def refreshDisplay(self):
         pygame.display.update()

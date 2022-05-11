@@ -31,8 +31,8 @@ class Button():
         self.__btnColorOff = pygame.Color(btnColor)
         self.__textColorOff = pygame.Color(textColor)
         if (buttonType == Button.Type.STICKY):
-            self.__btnColorOn = pygame.Color(btnColor).correct_gamma(0.25)
-            self.__textColorOn = pygame.Color(textColor).correct_gamma(0.25)
+            self.__btnColorOn = pygame.Color(btnColor).correct_gamma(0.55)
+            self.__textColorOn = pygame.Color(textColor).correct_gamma(0.55)
         else:
             self.__btnColorOn = pygame.Color(btnColor)
             self.__textColorOn = pygame.Color(textColor)
