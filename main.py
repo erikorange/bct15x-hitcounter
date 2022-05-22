@@ -81,7 +81,7 @@ def updateHitList(dict, entry, sort):
         dict[idx]["timestamp_raw"] = t
         dict[idx]["timestamp"] = time.strftime('%m-%d-%Y %H:%M:%S', t)
     else:                   # this is a new unique entry, so append
-        entry['count'] = 999
+        entry['count'] = 1
         dict.append(entry)
     
     dict = sortHitList(dict, sort)
