@@ -11,7 +11,13 @@ class SerialPort():
         self.__serPort.write(b'GLG\r')
 
     def getScannerResponse(self):
-        return self.__serPort.readline().decode('utf-8')
+        resp = self.__serPort.readline()
+        try:
+            decodedResp = resp.decode('utf-8')
+        except:
+            return ""
+
+        return decodedResp
     
     def isValidResponse(self, r):
         if r[0:3] == "GLG":

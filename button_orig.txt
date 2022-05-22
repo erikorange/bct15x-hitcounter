@@ -13,30 +13,23 @@ class Button():
         MOMENTARY = 1
         STICKY = 2
 
-    class Style(enum.Enum):
-        TEXT = 0
-        PAUSE = 1
-        UP_ARROW = 2
-        DOWN_ARROW = 3
-
-    def __init__(self, screen, pos, size, style, font, btnColor, textColor, text, onCallback, offCallback, initialState, buttonType):
+    def __init__(self, screen, posX, posY, sizeX, sizeY, font, btnColor, textColor, text, onCallback, offCallback, initialState, buttonType):
         self.__screen = screen
-        self.__posX = pos[0]
-        self.__posY = pos[1]
-        self.__sizeX = size[0]
-        self.__sizeY = size[1]
-        self.__style = style
+        self.__posX = posX
+        self.__posY = posY
+        self.__sizeX = sizeX
+        self.__sizeY = sizeY
         self.__font = font
         self.__btnColorOff = pygame.Color(btnColor)
         self.__textColorOff = pygame.Color(textColor)
         if (buttonType == Button.Type.STICKY):
-            self.__btnColorOn = pygame.Color(btnColor).correct_gamma(0.55)
-            self.__textColorOn = pygame.Color(textColor).correct_gamma(0.55)
+            self.__btnColorOn = pygame.Color(btnColor).correct_gamma(0.25)
+            self.__textColorOn = pygame.Color(textColor).correct_gamma(0.25)
         else:
             self.__btnColorOn = pygame.Color(btnColor)
             self.__textColorOn = pygame.Color(textColor)
 
-        self.__btnColorDisabled = pygame.Color((55,55,55))
+        self.__btnColorDisabled = pygame.Color((5,5,5))
         self.__textColorOff = pygame.Color(textColor)
         self.__textColorOn = pygame.Color(textColor).correct_gamma(0.25)
         self.__btnColorHidden = pygame.Color((0,0,0))
@@ -65,37 +58,11 @@ class Button():
 
     def __renderButton(self, bgColor, txtColor):
         self.__buttonRect = pygame.draw.rect(self.__screen, bgColor, (self.__posX, self.__posY, self.__sizeX, self.__sizeY), border_radius=10)
-        centerX = self.__buttonRect.centerx
-        centerY = self.__buttonRect.centery
-
-        if (self.__style == self.Style.TEXT):
-            txt = self.__font.render(self.__text, 1, txtColor)
-            txtRect = txt.get_rect(center=(centerX, centerY))
-            self.__screen.blit(txt, txtRect)
-
-        elif (self.__style == self.Style.PAUSE):
-            pWidth = 6
-            pHeight = 20
-            ctrOffset = 6
-
-            lp = pygame.Rect(0,0,pWidth,pHeight)
-            lp.center = (centerX - ctrOffset, centerY)
-            pygame.draw.rect(self.__screen, txtColor, lp)
-
-            rp = pygame.Rect(0,0,pWidth,pHeight)
-            rp.center = (centerX + ctrOffset, centerY)
-            pygame.draw.rect(self.__screen, txtColor, rp)
-
-        elif (self.__style == self.Style.DOWN_ARROW):
-            ctrOffset = 9
-            pygame.draw.polygon(self.__screen, txtColor, [(centerX, centerY+ctrOffset), (centerX-ctrOffset, centerY-ctrOffset), (centerX+ctrOffset, centerY-ctrOffset),(centerX, centerY+ctrOffset)])
-
-        elif (self.__style == self.Style.UP_ARROW):
-            ctrOffset = 9
-            pygame.draw.polygon(self.__screen, txtColor, [(centerX, centerY-ctrOffset), (centerX-ctrOffset, centerY+ctrOffset), (centerX+ctrOffset, centerY+ctrOffset),(centerX, centerY-ctrOffset)])     
-
-        else:
-            return
+        txt = self.__font.render(self.__text, 1, txtColor)
+        txtCenterX = self.__posX + (self.__sizeX/2)
+        txtCenterY = self.__posY + (self.__sizeY/2)
+        txtRect = txt.get_rect(center=(txtCenterX, txtCenterY))
+        self.__screen.blit(txt, txtRect)
 
     def toggleButton(self):
         if (self.__state == self.State.OFF):
@@ -125,7 +92,7 @@ class Button():
            return True
        else:
            return False
-        
+
     def isSelected(self):
         return self.__buttonRect.collidepoint(pygame.mouse.get_pos())
 

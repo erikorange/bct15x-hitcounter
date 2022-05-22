@@ -3,6 +3,7 @@ import pygame
 from pygame.locals import *
 import datetime
 from util import Util
+from sortType import SortType
 
 
 class Display():
@@ -16,8 +17,8 @@ class Display():
         self.__pageSize = 10            # max number of hits displayed per page
         
         self.__dataFlipLEDs = False
-        self.__dataLED1x = self.__screenWidth - 310
-        self.__dataLED2x = self.__screenWidth - 323
+        self.__dataLED1x = 10
+        self.__dataLED2x = 23
         self.__dataLEDy = self.__screenHeight - 28
         self.__dataLEDsize = 5
   
@@ -115,7 +116,7 @@ class Display():
         return (lowerBound, upperBound)
 
 
-    def displayHitList(self, hitList, curPage):
+    def displayHitList(self, hitList, curPage, sortType):
         ypos = 0
         self.clearDisplayArea()
         (lowerBound, upperBound) = self.__calcRange(hitList, curPage)
@@ -126,10 +127,23 @@ class Display():
             freq = hitList[i]["freq"]
             channel = hitList[i]["channel"]
 
-            data = [{"text":ts,"anchor":"left","xpos":0,"color":self.__cyan},
-                    {"text":count,"anchor":"right","xpos":210,"color":self.__white},
-                    {"text":freq,"anchor":"left","xpos":240,"color":self.__green},
-                    {"text":channel,"anchor":"left","xpos":400,"color":self.__green}]
+            if (sortType == SortType.TIMESTAMP):
+                data = [{"text":ts,"anchor":"left","xpos":0,"color":self.__cyan},
+                        {"text":count,"anchor":"right","xpos":225,"color":self.__white},
+                        {"text":freq,"anchor":"left","xpos":270,"color":self.__green},
+                        {"text":channel,"anchor":"left","xpos":450,"color":self.__green}]
+
+            elif (sortType == SortType.COUNT):
+                data = [{"text":count,"anchor":"right","xpos":70,"color":self.__white},
+                        {"text":ts,"anchor":"left","xpos":100,"color":self.__cyan},
+                        {"text":freq,"anchor":"left","xpos":270,"color":self.__green},
+                        {"text":channel,"anchor":"left","xpos":450,"color":self.__green}]
+            
+            elif (sortType == SortType.ALPHATAG):
+                data = [{"text":ts,"anchor":"left","xpos":0,"color":self.__cyan},
+                        {"text":count,"anchor":"right","xpos":225,"color":self.__white},
+                        {"text":freq,"anchor":"left","xpos":270,"color":self.__green},
+                        {"text":channel,"anchor":"left","xpos":450,"color":self.__green}]
 
             for l in data:
                 txt = self.__hitFont.render(l["text"], 1, l["color"])
@@ -144,22 +158,22 @@ class Display():
             ypos += 42
 
     def displayStats(self, hits, curPage):
-        x = 565
-        y = 441
+        x = 375
+        y = self.__dataLEDy
 
-        pygame.draw.rect(self.__lcd, self.__black, (x-45,y-10,90,44))
+        pygame.draw.rect(self.__lcd, self.__black, (x,self.__dataLEDy-15,210,30))
 
-        txt = self.__statsFont.render(f"{len(hits)}", 1, self.__cyan)
+        txt = self.__statsFont.render(f"Hits: {len(hits)}", 1, self.__white)
         txtRect = txt.get_rect()
-        txtRect.center = (x,y)
-        self.lcd.blit(txt, txtRect)
+        txtRect.x = x
+        txtRect.centery = y
+        self.__lcd.blit(txt, txtRect)
 
-        y = 464
-        txt = self.__statsFont.render(f"{curPage}/{self.getNumPages(hits)}", 1, self.__cyan)
+        txt = self.__statsFont.render(f"Page: {curPage}/{self.getNumPages(hits)}", 1, self.__white)
         txtRect = txt.get_rect()
-        txtRect.center = (x,y)
-        self.lcd.blit(txt, txtRect)
-
+        txtRect.x = x+100
+        txtRect.centery = y
+        self.__lcd.blit(txt, txtRect)
 
     def refreshDisplay(self):
         pygame.display.update()
